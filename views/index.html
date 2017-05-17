@@ -1,0 +1,103 @@
+@{title('Something awesome')}
+
+<hr />
+<table>
+	<tr>
+		<td>总金额</td>
+		<td><input type="text" data-bind="value:amount" /></td>
+	</tr>
+	<tr>
+		<td>选择货币对</td>
+		<td>
+			<select data-bind="options: optionValues,optionsText:'value',optionsValue:'key', value: selectType"></select>
+		</td>
+	</tr>
+	<tr>
+		<td>比特时代XRP价格</td>
+		<td><input type="text" data-bind="value:btcXRP" /></td>
+	</tr>
+	<tr>
+		<td>比特时代提币费率</td>
+		<td><input type="text" disabled data-bind="value:btcFree" /></td>
+	</tr>
+	<tr>
+		<td>聚币网XPR价格</td>
+		<td><input type="text"  data-bind="value:jubiXRP" /></td>
+	</tr>
+	<tr>
+		<td>聚币网CNY提现费率</td>
+		<td><input type="text" disabled data-bind="value:jubiFree" /></td>
+	</tr>
+	<tr>
+		<td>最终盈利：</td>
+		<td><input type="text" disabled data-bind="value:winAmount" /></td>
+	</tr>
+	
+</table>
+<button type="button" data-bind="disable:running,click:function(data,event){getData(1)},text:running()?'获取数据中。。。':'自动获取数据'">自动获取数据</button>
+<button type="button" data-bind="click:function(data,event){running(false)},disable:!running()">暂停</button>
+<script type="text/javascript">
+
+	var viewModel=function(){
+		var self=this,time;
+		this.amount=ko.observable(10000);
+		this.selectType=ko.observable('cny/xrp');
+		this.optionValues=ko.observableArray([
+			{key:'cny/xrp',value:'瑞波币'},
+			{key:'cny/doge',value:'狗币'},
+			{key:'cny/hlb',value:'活力币'},
+			{key:'cny/nxt',value:'未来币'},
+			{key:'cny/eac',value:'地球币'},
+			{key:'cny/zcc',value:'招财币'},
+			{key:'cny/blk',value:'黑币'},
+			{key:'cny/ppc',value:'点点币'}
+		]);
+		this.btcXRP=ko.observable(2.071);
+		this.jubiXRP=ko.observable(2.15);
+		this.btcFree=ko.observable(0.01);
+		this.jubiFree=ko.observable(0.005);
+		this.winAmount=ko.pureComputed(function(){
+			var btcXRP=(this.amount()/this.btcXRP());
+			btcXRP=btcXRP-btcXRP*0.001;
+			var jubiXRP=btcXRP-btcXRP*this.btcFree();
+			var jubiRMB=jubiXRP*this.jubiXRP();
+			jubiRMB=jubiRMB-jubiRMB*0.001;
+			return (jubiRMB-jubiRMB*this.jubiFree()).toFixed(2);
+		},this);
+		this.loading=ko.observable(false);
+		
+		this.running=ko.observable(false);
+		
+		
+		this.getData=function(type){
+			clearTimeout(time);
+			if(type==1){
+				self.running(true);
+			}else if(self.running()==false){
+				return;
+			}
+			return $.ajax({
+				url:'/ticker',
+				type:'post',
+				data:{type:self.selectType()},
+				beforeSend:function(){
+					self.loading(true);
+				}
+			})
+			.always(function(){
+				time=setTimeout(function(){
+					self.getData();
+				},10000);
+			})
+			.done(function(data) {
+				self.loading(false);
+				self.btcXRP(Number(data.btc.ticker.sell));
+				self.jubiXRP(Number(data.jubi.buy));
+			})	
+		}
+		
+	};
+	ko.applyBindings(new viewModel());
+	
+
+</script>
