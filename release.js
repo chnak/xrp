@@ -7,11 +7,11 @@
 const fs = require('fs');
 const options = {};
 
-// options.ip = '127.0.0.1';
-// options.port = parseInt(process.argv[2]);
+options.ip = '118.99.19.109';
+options.port = parseInt(process.argv[2]);
 // options.config = { name: 'total.js' };
 // options.https = { key: fs.readFileSync('keys/agent2-key.pem'), cert: fs.readFileSync('keys/agent2-cert.pem')};
-// options.sleep = 2000;
+options.sleep = 2000;
 
 /**
  * Release notes:
