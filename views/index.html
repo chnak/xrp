@@ -1,7 +1,13 @@
 @{title('Something awesome')}
-
-<hr />
-<table>
+<style type="text/css">
+table{margin:10px; float: left; border: 1px solid #585757; padding:10px; background:#d8d8d8}
+table th{text-align:center; padding:5px}
+table td{ padding:5px}
+</style>
+<table id="table1">
+	<tr>
+		<th colspan="2">普通套利计算器</th>
+	</tr>
 	<tr>
 		<td>总金额</td>
 		<td><input type="text" data-bind="value:amount" /></td>
@@ -13,29 +19,34 @@
 		</td>
 	</tr>
 	<tr>
-		<td>比特时代XRP价格</td>
+		<td>市场1货币价格</td>
 		<td><input type="text" data-bind="value:btcXRP" /></td>
 	</tr>
 	<tr>
-		<td>比特时代提币费率</td>
+		<td>市场1提币费率</td>
 		<td><input type="text" disabled data-bind="value:btcFree" /></td>
 	</tr>
 	<tr>
-		<td>聚币网XPR价格</td>
+		<td>市场2货币价格</td>
 		<td><input type="text"  data-bind="value:jubiXRP" /></td>
 	</tr>
 	<tr>
-		<td>聚币网CNY提现费率</td>
+		<td>市场2提现费率</td>
 		<td><input type="text" disabled data-bind="value:jubiFree" /></td>
 	</tr>
 	<tr>
 		<td>最终盈利：</td>
 		<td><input type="text" disabled data-bind="value:winAmount" /></td>
 	</tr>
+	<tr>
+		<td collapse="2">
+			<button type="button" data-bind="disable:running,click:function(data,event){getData(1)},text:running()?'获取数据中。。。':'自动获取数据'">自动获取数据</button>
+			<button type="button" data-bind="click:function(data,event){running(false)},disable:!running()">暂停</button>
+		</td>
+	</tr>
 	
 </table>
-<button type="button" data-bind="disable:running,click:function(data,event){getData(1)},text:running()?'获取数据中。。。':'自动获取数据'">自动获取数据</button>
-<button type="button" data-bind="click:function(data,event){running(false)},disable:!running()">暂停</button>
+
 <script type="text/javascript">
 
 	var viewModel=function(){
@@ -97,7 +108,103 @@
 		}
 		
 	};
-	ko.applyBindings(new viewModel());
-	
+	ko.applyBindings(new viewModel(),document.getElementById('table1'));
+</script>
 
+
+<table id="table2">
+	<tr>
+		<th colspan="2">蝶式套利计算器</th>
+	</tr>
+	<tr>
+		<td>总金额</td>
+		<td><input type="text" data-bind="value:amount" /></td>
+	</tr>
+	<!--tr>
+		<td>选择货币对</td>
+		<td>
+			<select data-bind="options: optionValues,optionsText:'value',optionsValue:'key', value: selectType"></select>
+		</td>
+	</tr-->
+	<tr>
+		<td>市场1货币价格</td>
+		<td><input type="text" data-bind="value:market1Price" /></td>
+	</tr>
+	<tr>
+		<td>市场1提币费率</td>
+		<td><input type="text" data-bind="value:market1Free" /></td>
+	</tr>
+	<tr>
+		<td>市场2货币1价格</td>
+		<td><input type="text"  data-bind="value:market2Price" /></td>
+	</tr>
+	<tr>
+		<td>市场2货币2价格</td>
+		<td><input type="text"  data-bind="value:market2OtherPrice" /></td>
+	</tr>
+	<tr>
+		<td>市场2提币费率</td>
+		<td><input type="text"  data-bind="value:market2Free" /></td>
+	</tr>
+	<tr>
+		<td>市场3货币价格</td>
+		<td><input type="text"  data-bind="value:market3Price" /></td>
+	</tr>
+	<tr>
+		<td>市场3提现费率</td>
+		<td><input type="text"  data-bind="value:market3Free" /></td>
+	</tr>
+	<tr>
+		<td>最终盈利：</td>
+		<td><input type="text"  data-bind="value:winAmount" /></td>
+	</tr>
+	
+</table>
+<div style="clear:bold;"></div>
+<script type="text/javascript">
+
+	var viewModel2=function(){
+		var self=this,time;
+		this.amount=ko.observable(10000);
+		this.selectType=ko.observable('cny/xrp');
+		this.optionValues=ko.observableArray([
+			{key:'cny/xrp',value:'瑞波币'},
+			{key:'cny/doge',value:'狗币'},
+			{key:'cny/hlb',value:'活力币'},
+			{key:'cny/nxt',value:'未来币'},
+			{key:'cny/eac',value:'地球币'},
+			{key:'cny/zcc',value:'招财币'},
+			{key:'cny/blk',value:'黑币'},
+			{key:'cny/ppc',value:'点点币'}
+		]);
+		this.market1Price=ko.observable(2.7);
+		this.market2Price=ko.observable(2.7978);
+		this.market2OtherPrice=ko.observable(2.4038);
+		this.market3Price=ko.observable(2.5909);
+		this.market1Free=ko.observable(0.01);
+		this.market2Free=ko.observable(0.01);
+		this.market3Free=ko.observable(0.005);
+		this.winAmount=ko.pureComputed(function(){
+			var market1Amount=(this.amount()/this.market1Price());
+			market1Amount=market1Amount-market1Amount*0.001;
+			var market2Amount=market1Amount-market1Amount*this.market1Free();
+			market2Amount=market2Amount*this.market2Price();
+			var market2btc=market2Amount-market2Amount*0.001;
+			var market2OtherAmount=(market2btc/this.market2OtherPrice());
+			market2OtherAmount=market2OtherAmount-market2OtherAmount*0.001;
+			var market3Amount=market2OtherAmount-market2OtherAmount*this.market2Free();
+			var market3Amount=market3Amount-market3Amount*this.market3Free();
+			var jubiRMB=market3Amount*this.market3Price();
+			jubiRMB=jubiRMB-jubiRMB*0.001;
+			return (jubiRMB-jubiRMB*this.market3Free()).toFixed(2);
+		},this);
+		this.loading=ko.observable(false);
+		
+		this.running=ko.observable(false);
+		
+		
+
+		
+	};
+	ko.applyBindings(new viewModel2(),document.getElementById('table2'));
 </script>
