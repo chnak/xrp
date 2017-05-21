@@ -12,6 +12,7 @@ table td{ padding:5px}
 		<td>总金额</td>
 		<td><input type="text" data-bind="value:amount" /></td>
 	</tr>
+	
 	<tr>
 		<td>选择货币对</td>
 		<td>
@@ -39,7 +40,11 @@ table td{ padding:5px}
 		<td><input type="text" disabled data-bind="value:winAmount" /></td>
 	</tr>
 	<tr>
-		<td collapse="2">
+		<td>
+			<label><input type="radio" value="0" data-bind="checked:type" />btc38->jubi</label>
+			<label><input type="radio" value="1" data-bind="checked:type" />jubi->btc38</label>
+		</td>
+		<td>
 			<button type="button" data-bind="disable:running,click:function(data,event){getData(1)},text:running()?'获取数据中。。。':'自动获取数据'">自动获取数据</button>
 			<button type="button" data-bind="click:function(data,event){running(false)},disable:!running()">暂停</button>
 		</td>
@@ -53,6 +58,7 @@ table td{ padding:5px}
 		var self=this,time;
 		this.amount=ko.observable(10000);
 		this.selectType=ko.observable('cny/xrp');
+		this.type=ko.observable('0');
 		this.optionValues=ko.observableArray([
 			{key:'cny/xrp',value:'瑞波币'},
 			{key:'cny/doge',value:'狗币'},
@@ -102,8 +108,13 @@ table td{ padding:5px}
 			})
 			.done(function(data) {
 				self.loading(false);
-				self.btcXRP(Number(data.btc.ticker.sell));
-				self.jubiXRP(Number(data.jubi.buy));
+				if(self.type()==0){
+					self.btcXRP(Number(data.btc.ticker.sell));
+					self.jubiXRP(Number(data.jubi.buy));
+				}else{
+					self.btcXRP(Number(data.jubi.sell));
+					self.jubiXRP(Number(data.btc.ticker.buy));
+				};
 			})	
 		}
 		
